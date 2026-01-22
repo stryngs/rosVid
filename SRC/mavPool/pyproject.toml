@@ -1,0 +1,18 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61"]
+
+[project]
+authors = [{ email = "127.0.0.1@nowhere.com", name = "stryngs" }]
+dependencies = ["geometry_msgs",
+                "rclpy",
+                "mavros_msgs",
+                "sensor_msgs",
+                "std_msgs"]
+description = "A central pool for mavros intake"
+license = "GPL-2.0-only"
+license-files = ["LICENSE"]
+name = "mavPool"
+readme = "README.md"
+requires-python = ">=3.10"
+version = "0.0.2"

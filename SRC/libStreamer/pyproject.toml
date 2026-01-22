@@ -1,0 +1,13 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61"]
+
+[project]
+authors = [{ name = "stryngs", email = "127.0.0.1@nowhere.com" }]
+description = "Helps to streamline the code for rosVid"
+license = "GPL-2.0-only"
+license-files = ["LICENSE"]
+name = "libStreamer"
+readme = "README.md"
+requires-python = ">=3.10"
+version = "0.0.2"

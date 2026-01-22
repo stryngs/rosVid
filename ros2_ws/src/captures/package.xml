@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <description>Transport and viewing mechanisms for video streams</description>
+  <maintainer email="127.0.0.1@nowhere.com">stryngs</maintainer>
+  <name>captures</name>
+  <license>GPLv2</license>
+  <version>0.0.2</version>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+  <depend>cv_bridge</depend>
+  <depend>libStreamer</depend>
+  <depend>python3-opencv</depend>
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
