@@ -13,12 +13,12 @@ class RTSPMediaFactory(GstRtspServer.RTSPMediaFactory):
         cChain = self.codecChain(args)
 
         if not args.mipi:
-            self.set_launch(f'latency=0 drop-on-latency=true ! '
-                            f'v4l2src device={args.device} do-timestamp=true ! '
-                            f'video/x-raw,format={args.format},'
+            self.set_launch(f'v4l2src device={args.device} do-timestamp=true ! '
+                            f'video/x-raw,'
                             f'width={args.width},height={args.height},'
                             f'framerate={args.fps}/1 ! '
                             f'videoconvert ! '
+                            f'video/x-raw,format={args.format} ! '
                             f'{cChain}')
         else:
             self.set_launch(f'libcamerasrc ! '
@@ -26,11 +26,12 @@ class RTSPMediaFactory(GstRtspServer.RTSPMediaFactory):
                             f'width={args.width},height={args.height},'
                             f'framerate={args.fps}/1 ! '
                             f'videoconvert ! '
+                            f'video/x-raw,format={args.format} ! '
                             f'{cChain}')
 
 
     def codecChain(self, args):
-        """Currently handlyes h264 or h265"""
+        """Currently handles h264 or h265"""
         if args.codec == 'h264':
             if not args.mipi:
                 return (f'x264enc tune=zerolatency speed-preset=ultrafast '
