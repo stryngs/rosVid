@@ -56,7 +56,7 @@ class Rtsp:
         ### avdec_h264, nvh264dec, omxh264dec, vaapih264dec and v4l2h264dec
         self.cEncode = [int(cv2.IMWRITE_JPEG_QUALITY), self.jpegQuality]
 
-        self.chainDecoder = ChainDecoder(decoder = f'avdec_{self.node.get_parameter('codec').value}',
+        self.chainDecoder = ChainDecoder(decoder = f'avdec_{self.node.get_parameter("codec").value}',
                                          format = 'BGR',
                                          height = self.height,
                                          width = self.width)
