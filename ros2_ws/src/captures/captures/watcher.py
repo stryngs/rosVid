@@ -24,14 +24,13 @@ class Viewer(Node):
 
         ## compressed
         if self.compressed:
-            self.bridge = CvBridge()
             self.sub = self.create_subscription(CompressedImage,
                                                 f'/captures/{self.capture}/compressed{self.topicId}',
                                                 self.cback_Compressed,
                                                 qos)
 
         ## pickled
-        elif self.pickled and not self.compressed:
+        elif self.pickled:
             self.sub = self.create_subscription(UInt8MultiArray,
                                                 f'/captures/{self.capture}/pickled{self.topicId}',
                                                 self.cback_Pickled,
@@ -44,6 +43,15 @@ class Viewer(Node):
                                                 f'/captures/{self.capture}/raw{self.topicId}',
                                                 self.cback_Raw,
                                                 qos)
+
+    def cback_Compressed(self, msg):
+        try:
+            np_arr = np.frombuffer(msg.data, np.uint8)
+            frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            cv2.imshow(self.windowName, frame)
+            cv2.waitKey(1)
+        except Exception as E:
+            self.get_logger().error(f'[!] {E}')
 
 
     def cback_Pickled(self, msg):
@@ -82,17 +90,6 @@ class Viewer(Node):
             cv2.waitKey(1)
         except Exception as E:
             self.get_logger().error(f'[!] {E}')
-
-
-    def cback_Compressed(self, msg):
-        try:
-            np_arr = np.frombuffer(msg.data, np.uint8)
-            frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-            cv2.imshow(self.windowName, frame)
-            cv2.waitKey(1)
-        except Exception as E:
-            self.get_logger().error(f'[!] {E}')
-
 
 def main(args = None):
     rclpy.init(args = args)
