@@ -4,7 +4,7 @@
   <maintainer email="127.0.0.1@nowhere.com">stryngs</maintainer>
   <name>captures</name>
   <license>GPLv2</license>
-  <version>0.0.2</version>
+  <version>0.0.4</version>
 
   <buildtool_depend>ament_python</buildtool_depend>
   <depend>cv_bridge</depend>

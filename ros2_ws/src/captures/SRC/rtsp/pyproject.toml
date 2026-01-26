@@ -16,4 +16,4 @@ license-files = ["LICENSE"]
 name = "libStreamer_rtsp"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.0.2"
+version = "0.0.4"
