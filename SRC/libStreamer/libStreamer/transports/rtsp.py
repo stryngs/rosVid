@@ -11,6 +11,7 @@ class RTSPMediaFactory(GstRtspServer.RTSPMediaFactory):
         super().__init__()
 
         cChain = self.codecChain(args)
+        aChain = self.audioChain(args) if getattr(args, 'audio', False) else ''
 
         if not args.mipi:
             self.set_launch(f'v4l2src device={args.device} do-timestamp=true ! '
@@ -19,7 +20,8 @@ class RTSPMediaFactory(GstRtspServer.RTSPMediaFactory):
                             f'framerate={args.fps}/1 ! '
                             f'videoconvert ! '
                             f'video/x-raw,format={args.format} ! '
-                            f'{cChain}')
+                            f'{cChain} '
+                            f'{aChain}')
         else:
             self.set_launch(f'libcamerasrc ! '
                             f'video/x-raw,'
@@ -27,7 +29,8 @@ class RTSPMediaFactory(GstRtspServer.RTSPMediaFactory):
                             f'framerate={args.fps}/1 ! '
                             f'videoconvert ! '
                             f'video/x-raw,format={args.format} ! '
-                            f'{cChain}')
+                            f'{cChain} '
+                            f'{aChain}')
 
 
     def codecChain(self, args):
@@ -38,26 +41,33 @@ class RTSPMediaFactory(GstRtspServer.RTSPMediaFactory):
                         f'sliced-threads=true threads=4 '
                         f'key-int-max=30 '
                         f'bitrate={args.bitrate} ! '
-                        f'h264parse ! '
-                        f'rtph264pay config-interval=1 name=pay0 pt=96')
+                        f'{args.codec}parse ! '
+                        f'rtp{args.codec}pay config-interval=1 name=pay0 pt=96')
             return (f'x264enc tune=zerolatency speed-preset=ultrafast '
                     f'key-int-max=30 '
                     f'bitrate={args.bitrate} ! '
-                    f'h264parse ! '
-                    f'rtph264pay config-interval=1 name=pay0 pt=96')
+                    f'{args.codec}parse ! '
+                    f'rtp{args.codec}pay config-interval=1 name=pay0 pt=96')
 
         elif args.codec == 'h265':
             if not args.mipi:
                 return (f'x265enc tune=zerolatency '
                         f'key-int-max=30 '
                         f'bitrate={args.bitrate} ! '
-                        f'h265parse ! '
-                        f'rtph265pay config-interval=1 name=pay0 pt=96')
+                        f'{args.codec}parse ! '
+                        f'rtp{args.codec}pay config-interval=1 name=pay0 pt=96')
             return (f'x265enc tune=zerolatency '
                     f'key-int-max=30 '
                     f'bitrate={args.bitrate} ! '
-                    f'h265parse ! '
-                    f'rtph265pay config-interval=1 name=pay0 pt=96')
+                    f'{args.codec}parse ! '
+                    f'rtp{args.codec}pay config-interval=1 name=pay0 pt=96')
+
+    def audioChain(self, args):
+        return (f'alsasrc device=hw:{args.acard},{args.adevice} ! '
+                f'audioconvert ! audioresample ! '
+                f'audio/x-raw,rate={args.arate},channels={args.achannels} ! '
+                f'opusenc bitrate={args.abitrate} ! '
+                f'rtpopuspay name=pay1 pt=97')
 
 
 

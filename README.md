@@ -17,12 +17,46 @@ In the [SRC](SRC/) folder you will find [libStreamer](SRC/libStreamer/README.md)
 
 For ease of use both of these libraries have been pre-compiled under [Releases](https://github.com/stryngs/rosVid/releases).
 
-The `rtspServer` is stand-alone Python and no ROS2 installation is required.
-
 Usage of the captures package requires ROS2.  [ROS2 Humble](https://docs.ros.org/en/humble/Installation.html) and [ROS2 Kilted](https://docs.ros.org/en/kilted/Installation.html) are both supported.
 
-## Inputs
-Physical cameras via USB or MIPI, as well as RTSP as an input, is achieved using the methods below.  The input mechanism for [rtspServer](./rtspServer.py) allows either a USB or MIPI camera to be captured and streamed as RTSP.
+### rtspServer/rtspClient
+The server and client are both stand-alone Python and no ROS2 installation is required.
+
+The RTSP server will transmit audio when the `--audio` flag is set.  To receive the audio with the RTSP client `--audio` must also be set.
+
+Available parameters for server:
+```
+--abitrate   Opus bitrate                     [Default is 64000]
+--acard      ALSA card index                  [Default is 0]
+--achannels  Audio channels                   [Default is 2]
+--adevice    ALSA deviceindex                 [Default is 0]
+--arate      Audio sampel rate                [Default is 48000]
+--audio      Enable audio                     [Default is False]
+--bitrate    Desired bitrate                  [Default is 2500]
+--codec      Desired codec                    [Default is h264, can also be h265]
+--device     Device to stream from            [Default is /dev/video0]
+--format     Desired pixel format             [Default is YUY2]
+--fps        Desired frames per second        [Default is 30]
+--height     Desired video height             [Default is 480]
+--mipi       MIPI camera usage                [Default is none]
+--port       Desired port to stream on        [Default is 8554]
+--endpoint   Desired endpoint for the stream  [Default is /video]
+--width      Desired video width              [Default is 640]
+```
+
+Available parameters for client:
+```
+--audio-max-buffers  Audio queue max buffers            [Default is 5]
+--audio-leaky        Leaky audio queue for low latency  [Default is True]
+--audio-sync         Enable audio sink sync             [Default is True]
+--codec              Video codec                        [Default is h264]
+--drop-on-latency    Drop late buffers                  [Default is True]
+--latency            RTSP source latency in ms          [Default is 0]
+--video-leaky        Leaky video queue                  [Default is False]
+--video-max-buffers  Video queue max buffers            [Default is 30]
+--video-sync         Enable video sink sync             [Default is True]
+--url                RTSP URL                           [Default is rtsp://127.0.0.1:8554/video]')
+```
 
 ### MIPI
 MIPI input is gathered by the [libStreamer.transports.rtsp](./SRC/libStreamer/libStreamer/transports/rtsp.py) module.
@@ -36,22 +70,6 @@ python3 ./rtspServer.py --mipi
 The above will connect to the MIPI camera on */dev/video0* by default.  If /dev/video0 is not the assignment for the MIPI camera, select the camera with `--device`.
 
 The associated RTSP stream is now ready to view using more traditional RTSP viewing methods as well as the ROS2 viewing [technique](./README.md#watcher-output) further down in this file.
-
-**If using the h265 codec in conjunction with the `rtsp` module, that module must also invoke h265 via the codec parameter.**
-
-Available parameters:
-```
-  --bitrate BITRATE    Desired bitrate                  [Default is 2500]
-  --codec {h264,h265}  Desired codec                    [Default is h264]
-  --device DEVICE      Device to stream from            [Default is /dev/video0]
-  --format FORMAT      Desired pixel format             [Default is YUY2]
-  --fps FPS            Desired frames per second        [Default is 30]
-  --height HEIGHT      Desired video height             [Default is 480]
-  --mipi               MIPI camera usage                [Default is none]
-  --port PORT          Desired port to stream on        [Default is 8554]
-  --endpoint ENDPOINT  Desired endpoint for the stream  [Default is /video]
-  --width WIDTH        Desired video width              [Default is 640]
-```
 
 ### RTSP
 The captures module for RTSP allows connecting to an RTSP video stream and them transmitting the contents over ROS2.  If you are using a camera which already has RTSP capabilities the only thing to add is the `rtspUrl`.  If you are using the provided `rtspServer` then no parameters need to be added other than if you are doing this on two different computers, if so simply add the `rtspUrl` accordingly.
@@ -74,6 +92,8 @@ width        Width of video to output                   [Default is 640]
 ```
 
 When running multiple video cameras at the same time the `topicId` parameter will modify the topics on the backend.
+
+**If using the h265 codec in conjunction with the `rtsp` module, that module must also invoke h265 via the codec parameter.**
 
 ### USB
 USB input is gathered using either the [phys](ros2_ws/src/captures/captures/phys.py) module or the [rtspServer](./rtspServer.py).

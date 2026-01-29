@@ -6,6 +6,12 @@ from libStreamer.transports.rtsp import *
 def main():
     """Stream the RTSP"""
     parser = argparse.ArgumentParser(description = 'An RTSP based server')
+    parser.add_argument('--abitrate', default = 64000, help = 'Opus bitrate [Default is 64000]')
+    parser.add_argument('--acard', default = 0, help = 'ALSA card index [Default is 0]')
+    parser.add_argument('--achannels', default = 2, help = 'Audio channels [Default is 2]')
+    parser.add_argument('--adevice', default = 0, help = 'ALSA device index [Default is 0]')
+    parser.add_argument('--arate', default = 48000, help = 'Audio sample rate [Default is 48000]')
+    parser.add_argument('--audio', action = 'store_true', help = 'Enable audio [Default is False]')
     parser.add_argument('--bitrate', default = 2500, help = 'Desired bitrate [Default is 2500]')
     parser.add_argument('--codec', choices = ['h264', 'h265'], default = 'h264', help = 'Desired codec [Default is h264]')
     parser.add_argument('--device', default = '/dev/video0', help = 'Device to stream from [Default is /dev/video0]')
@@ -15,7 +21,7 @@ def main():
     parser.add_argument('--mipi', action = 'store_true', help = 'MIPI camera usage [Default is none]')
     parser.add_argument('--port', default = 8554, help = 'Desired port to stream on [Default is 8554]')
     parser.add_argument('--endpoint', default = 'video', help = 'Desired endpoint for the stream [Default is /video]')
-    parser.add_argument('--width', default = 640, help = 'Desired video width [Default is 640]')
+    parser.add_argument('--width', default = 640, help = 'Desired video width [Default is 640]')  
  
     args = parser.parse_args()
     server = RTSPServer(args)
