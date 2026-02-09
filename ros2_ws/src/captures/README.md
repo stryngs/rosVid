@@ -81,5 +81,50 @@ ros2 topic pub /captures/rtsp/config std_msgs/String "data: '{height: 720, width
 ros2 topic pub /captures/rtsp/config std_msgs/String "data: 'pubSpeed: 20'" --once
 ```
 
+## udp
+The udp module was created to allow for a UDP RTP stream (H.264/H.265) to be transmitted over ROS2.
+
+Invocation of the `udp` module can be obtained without `ros2 run` being needed.  To set the various parameters you can provide arguments in the form of a dictionary when the class is instantiated.  Below is an example where the default pubSpeed setting is set to 15 and the port to 5600:
+```python
+import rclpy
+import threading
+from captures.udp import Udp
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.node import Node
+
+rclpy.init()
+node = Node('udp')
+udp = Udp(node, args = {'pubSpeed': 15, 'udpPort': 5600})
+
+executor = MultiThreadedExecutor()
+executor.add_node(node)
+theThread = threading.Thread(daemon = True, target = executor.spin)
+theThread.start()
+```
+
+Incorporating the module into an already existing ROS2 stack can be done like so:
+```python
+from captures.udp import Udp
+
+self.udp = Udp(self.node)
+```
+
+The available parameters that can be changed while running are:
+- clockRate
+- codec
+- height
+- jpegQuality
+- pubSpeed
+- udpCaps
+- udpHost
+- udpPort
+- width
+
+config here
+```bash
+ros2 topic pub /captures/udp/config std_msgs/String "data: '{udpPort: 5600, codec: h264}'" --once
+ros2 topic pub /captures/udp/config std_msgs/String "data: 'pubSpeed: 20'" --once
+```
+
 ## watcher
 Information on interacting with the watcher executable is [here](../../../README.md#watcher-output).
