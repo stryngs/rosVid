@@ -1,5 +1,5 @@
 # phys Unit Testing
-The following instructions have been developed for regression testing of the rtsp module.
+The following instructions have been developed for regression testing of the phys module.
 
 ## Pre-requisites
 The tests below are expected to be relative to your home directory and as such use `~/rosVid` as the expected directory from where to call.

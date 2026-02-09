@@ -68,7 +68,7 @@ Open another shell and do:
 export ROS_DOMAIN_ID=42
 export ROS_LOCALHOST_ONLY=0
 source ~/rosVid/ros2_ws/install/setup.bash
-ros2 run captures watcher --ros-args -p capture:=rtsp -p pickled:=True
+ros2 run captures watcher --ros-args -p pickled:=True -p capture:=rtsp
 ```
 
 Open another shell and do:
