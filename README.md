@@ -1,5 +1,5 @@
 # rosVid
-A software suite designed to simplify the complexities in streaming and receiving a video image.
+A software suite designed to simplify the complexities in streaming and receiving audio and video.
 
 `rosVid` makes use of both [RTSP](https://datatracker.ietf.org/doc/html/rfc2326) and [ROS2](https://github.com/ros2) as transport and viewing mechanisms for video streams.
 
