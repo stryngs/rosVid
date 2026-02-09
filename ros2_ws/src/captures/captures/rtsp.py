@@ -10,7 +10,6 @@ import numpy as np
 import yaml
 from cv_bridge import CvBridge
 from libStreamer.frameworks.gstreamer import ChainDecoder
-from mavPool import Pool
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import HistoryPolicy, QoSProfile, ReliabilityPolicy
@@ -69,7 +68,6 @@ class Rtsp:
         self.lock_Thread = threading.Lock()
 
         self.new_Snapshot = None
-        self.new_Timestamp = None
         
         self.loop_GLib = None
         self.pipeline_Gstreamer = None
@@ -91,7 +89,9 @@ class Rtsp:
         self.timer = self.node.create_timer(self.pubSpeed_period, self.cback_Pub)
 
         ## mavPool connection
-        self.mvp = Pool(self.node)
+        if self.mavPool:
+            from mavPool import Pool
+            self.mvp = Pool(self.node)
 
         ## Run
         if self.thisNode:
@@ -135,6 +135,12 @@ class Rtsp:
         self.jpegQuality = int(self.args.get('jpegQuality',
                                              self.node.get_parameter_or('jpegQuality',
                                                                         50).value))
+
+        if not self.node.has_parameter('mavPool'):
+            self.node.declare_parameter('mavPool', False)
+        self.mavPool = self.args.get('mavPool',
+                                     self.node.get_parameter_or('mavPool',
+                                                                False).value)
 
         if not self.node.has_parameter('pubSpeed'):
             self.node.declare_parameter('pubSpeed', 30)
@@ -209,7 +215,6 @@ class Rtsp:
             now = time.time()
             with self.lock_Snapshot:
                 self.new_Snapshot = frame.copy()
-                self.new_Timestamp = now
 
         except Exception as E:
             self.node.get_logger().warn(f'[!] {E}')
@@ -319,11 +324,7 @@ class Rtsp:
             if pubSpeed_hz and pubSpeed_hz != self.pubSpeed_hz:
                 self.pubSpeed_hz = pubSpeed_hz
                 self.pubSpeed_period = 1.0 / pubSpeed_hz
-
-                # update ROS parameter
                 self.node.set_parameters([rclpy.parameter.Parameter('pubSpeed', value = pubSpeed_hz)])
-
-                # update timer period
                 try:
                     self.timer.cancel()
                 except Exception as E:
@@ -379,12 +380,20 @@ class Rtsp:
                 ret, jpeg = cv2.imencode('.jpg', frame)
                 if not ret:
                     return
-                obj = {'alt': self.mvp._alt.get('rel'),
+                if self.mavPool:
+                    alt = self.mvp._alt.get('rel')
+                    lat = self.mvp._gps.get('lat')
+                    lon = self.mvp._gps.get('lon')
+                else:
+                    alt = 'N/A'
+                    lat = 'N/A'
+                    lon = 'N/A'
+                obj = {'alt': alt,
                        'pubSpeed': self.pubSpeed_hz,
                        'frame': jpeg.tobytes(),
                        'height': self.height,
-                       'lat': self.mvp._gps.get('lat'),
-                       'lon': self.mvp._gps.get('lon'),
+                       'lat': lat,
+                       'lon': lon,
                        'tstamp': now,
                        'width': self.width}
                 self.pMsg.data = list(pickle.dumps(obj))

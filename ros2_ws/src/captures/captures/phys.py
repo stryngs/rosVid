@@ -9,7 +9,6 @@ import yaml
 from cv_bridge import CvBridge
 from libStreamer import Config
 from libStreamer.lib.opencv import CaptureHandler
-from mavPool import Pool
 from rclpy.node import Node
 from rclpy.qos import HistoryPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import CompressedImage, Image
@@ -67,7 +66,9 @@ class Phys:
         self.timer = self.node.create_timer(self.pubSpeed_period, self.cback_Pub)
 
         ## mavPool connection
-        self.mvp = Pool(self.node)
+        if self.mavPool:
+            from mavPool import Pool
+            self.mvp = Pool(self.node)
 
         ## Run
         if self.thisNode:
@@ -118,6 +119,12 @@ class Phys:
         self.jpegQuality = int(self.args.get('jpegQuality',
                                              self.node.get_parameter_or('jpegQuality',
                                                                         50).value))
+
+        if not self.node.has_parameter('mavPool'):
+            self.node.declare_parameter('mavPool', False)
+        self.mavPool = self.args.get('mavPool',
+                                     self.node.get_parameter_or('mavPool',
+                                                                False).value)
 
         if not self.node.has_parameter('pubSpeed'):
             self.node.declare_parameter('pubSpeed', 30)
@@ -269,12 +276,20 @@ class Phys:
                 ret, jpeg = cv2.imencode('.jpg', frame)
                 if not ret:
                     return
-                obj = {'alt': self.mvp._alt.get('rel'),
+                if self.mavPool:
+                    alt = self.mvp._alt.get('rel')
+                    lat = self.mvp._gps.get('lat')
+                    lon = self.mvp._gps.get('lon')
+                else:
+                    alt = 'N/A'
+                    lat = 'N/A'
+                    lon = 'N/A'
+                obj = {'alt': alt,
                        'frame': jpeg.tobytes(),
                        'fps': self.fps,
                        'height': self.height,
-                       'lat': self.mvp._gps.get('lat'),
-                       'lon': self.mvp._gps.get('lon'),
+                       'lat': lat,
+                       'lon': lon,
                        'pubSpeed': self.pubSpeed_hz,
                        'tstamp': now,
                        'width': self.width}
