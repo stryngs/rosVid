@@ -6,7 +6,6 @@ requires = ["setuptools>=61"]
 authors = [{ name = "stryngs", email = "127.0.0.1@nowhere.com" }]
 dependencies = ["geometry-msgs",
                 "libStreamer",
-                "mavPool",
                 "rclpy",
                 "sensor-msgs",
                 "std-msgs"]
@@ -16,4 +15,4 @@ license-files = ["LICENSE"]
 name = "libStreamer_phys"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.0.2"
+version = "0.0.6"
