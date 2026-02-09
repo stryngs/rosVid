@@ -6,6 +6,7 @@ A software suite designed to simplify the complexities in streaming and receivin
 The supported types of input are:
  - MIPI
  - RTSP
+ - UDP
  - USB
 
  The supported types of output are:
@@ -17,7 +18,9 @@ In the [SRC](SRC/) folder you will find [libStreamer](SRC/libStreamer/README.md)
 
 For ease of use both of these libraries have been pre-compiled under [Releases](https://github.com/stryngs/rosVid/releases).
 
-Usage of the captures package requires ROS2.  [ROS2 Humble](https://docs.ros.org/en/humble/Installation.html) and [ROS2 Kilted](https://docs.ros.org/en/kilted/Installation.html) are both supported.
+While libStreamer is a requirement, mavPool has now been made optional and is invoked by the `mavPool` parameter.
+
+For the ROS2 code both [ROS2 Humble](https://docs.ros.org/en/humble/Installation.html) and [ROS2 Kilted](https://docs.ros.org/en/kilted/Installation.html) are both supported.
 
 ### rtspServer/rtspClient
 The server and client are both stand-alone Python and no ROS2 installation is required.
@@ -35,7 +38,7 @@ Available parameters for server:
 --bitrate    Desired bitrate                  [Default is 2500]
 --codec      Desired codec                    [Default is h264, can also be h265]
 --device     Device to stream from            [Default is /dev/video0]
---format     Desired pixel format             [Default is YUY2]
+--format     Desired pixel format             [Default is I420]
 --fps        Desired frames per second        [Default is 30]
 --height     Desired video height             [Default is 480]
 --mipi       MIPI camera usage                [Default is none]
@@ -46,6 +49,7 @@ Available parameters for server:
 
 Available parameters for client:
 ```
+--audio              Enable audio                       [Default is False]
 --audio-max-buffers  Audio queue max buffers            [Default is 5]
 --audio-leaky        Leaky audio queue for low latency  [Default is True]
 --audio-sync         Enable audio sink sync             [Default is True]
@@ -55,7 +59,7 @@ Available parameters for client:
 --video-leaky        Leaky video queue                  [Default is False]
 --video-max-buffers  Video queue max buffers            [Default is 30]
 --video-sync         Enable video sink sync             [Default is True]
---url                RTSP URL                           [Default is rtsp://127.0.0.1:8554/video]')
+--url                RTSP URL                           [Default is rtsp://127.0.0.1:8554/video]'
 ```
 
 ### MIPI
@@ -94,6 +98,29 @@ width        Width of video to output                   [Default is 640]
 When running multiple video cameras at the same time the `topicId` parameter will modify the topics on the backend.
 
 **If using the h265 codec in conjunction with the `rtsp` module, that module must also invoke h265 via the codec parameter.**
+
+### UDP
+UDP input listens on port 5600 on all interfaces by default.
+
+`udp` usage:
+```bash
+
+ros2 run captures udp
+```
+
+The available parameters for udp are as follows:
+```
+clockRate    RTP clock rate for the stream              [Default is 90000]
+codec        Video codec (h264 or h265)                 [Default is h264]
+height       Expected / scaled video height             [Default is 480]
+jpegQuality  JPEG compression quality                   [Default is 50]
+mavPool      Enable MAVLink metadata integration        [Default is False]
+pubSpeed     Published frames per second                [Default is 30]
+topicId      Defines a unique identifier for the topic  [Optional, for multiple instances]
+udpHost      UDP source address to bind to              [Default is 0.0.0.0 (all interfaces)]
+udpPort      UDP port to listen on                      [Default is 5600]
+width        Expected / scaled video width              [Default is 640]
+```
 
 ### USB
 USB input is gathered using either the [phys](ros2_ws/src/captures/captures/phys.py) module or the [rtspServer](./rtspServer.py).
@@ -162,7 +189,7 @@ ros2 run captures watcher
 ```
 
 ## Configuration Changes
-Both the `phys` and `rtsp` executables create a ROS2 Subscriber which allows for user-defined changes while the module is running.  Detailed instructions for doing so are found [here](./ros2_ws/src/captures/README.md).
+The `phys`, `rtsp` and `udp` executables create a ROS2 Subscriber which allows for user-defined changes while the module is running.  Detailed instructions for doing so are found [here](./ros2_ws/src/captures/README.md).
 
 ## Next steps
 In the next phase of development, rosVid will evolve from a streaming and viewing platform into a reactive system.  The idea is to monitor the pixel-level changes from the video feed, detect motion, identify patterns, and trigger automated responses in real time (hence ROS2 from the beginning).  That capability will open the door for applications ranging from surveillance and robotics to autonomous vehicles, where instantaneous visual feedback is critical.  The focus will be on creating a modular framework that allows users to define custom reactions to visual events, transforming raw video streams into actionable intelligence.
