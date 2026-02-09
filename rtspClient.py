@@ -101,16 +101,16 @@ def main():
 
     try:
         player = pipebuild(args.url,
-                                args.latency,
-                                args.drop_on_latency,
-                                args.video_leaky,
-                                args.audio_leaky,
-                                args.video_max_buffers,
-                                args.audio_max_buffers,
-                                args.video_sync,
-                                args.audio_sync,
-                                args.codec,
-                                args.audio)
+                           args.latency,
+                           args.drop_on_latency,
+                           args.video_leaky,
+                           args.audio_leaky,
+                           args.video_max_buffers,
+                           args.audio_max_buffers,
+                           args.video_sync,
+                           args.audio_sync,
+                           args.codec,
+                           args.audio)
     except Exception as E:
         print(f'[!] Failed to build pipeline: {E}')
         return 1
