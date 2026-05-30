@@ -20,6 +20,7 @@ Open another shell and do:
 ```bash
 export ROS_DOMAIN_ID=42
 export ROS_LOCALHOST_ONLY=0
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 source ~/rosVid/ros2_ws/install/setup.bash
 ros2 run captures rtsp
 ```
@@ -44,6 +45,7 @@ Open another shell and do:
 ```bash
 export ROS_DOMAIN_ID=42
 export ROS_LOCALHOST_ONLY=0
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 python3 << 'EOF'
 import rclpy
 import threading
