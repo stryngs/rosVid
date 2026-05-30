@@ -15,24 +15,30 @@ class Viewer(Node):
         super().__init__('watcher')
         self.capture = self.declare_parameter('capture', 'phys').value
         self.compressed = self.declare_parameter('compressed', False).value
+        self.key = self.declare_parameter('key', 'frame').value
         self.pickled = self.declare_parameter('pickled', False).value
+        self.topic = self.declare_parameter('topic', '').value
         self.topicId = self.declare_parameter('topicId', '').value
+        self.type = self.declare_parameter('type', '').value
         self.windowName = self.declare_parameter('windowName', '').value
         qos = QoSProfile(depth = 10,
                          history = HistoryPolicy.KEEP_LAST,
                          reliability = ReliabilityPolicy.BEST_EFFORT)
 
+        mode = self.topicType()
+        topic = self.topicName(mode)
+
         ## compressed
-        if self.compressed:
+        if mode == 'CompressedImage':
             self.sub = self.create_subscription(CompressedImage,
-                                                f'/captures/{self.capture}/compressed{self.topicId}',
+                                                topic,
                                                 self.cback_Compressed,
                                                 qos)
 
         ## pickled
-        elif self.pickled:
+        elif mode == 'UInt8MultiArray':
             self.sub = self.create_subscription(UInt8MultiArray,
-                                                f'/captures/{self.capture}/pickled{self.topicId}',
+                                                topic,
                                                 self.cback_Pickled,
                                                 qos)
 
@@ -40,9 +46,32 @@ class Viewer(Node):
         else:
             self.bridge = CvBridge()
             self.sub = self.create_subscription(Image,
-                                                f'/captures/{self.capture}/raw{self.topicId}',
+                                                topic,
                                                 self.cback_Raw,
                                                 qos)
+
+
+    def topicType(self):
+        if self.type:
+            mode = str(self.type).strip()
+            if mode in ('CompressedImage', 'UInt8MultiArray', 'Image'):
+                return mode
+            raise ValueError(f'[!] unsupported topic type {mode!r}')
+        if self.compressed:
+            return 'CompressedImage'
+        if self.pickled:
+            return 'UInt8MultiArray'
+        return 'Image'
+
+
+    def topicName(self, mode):
+        if self.topic:
+            return str(self.topic).strip()
+        if mode == 'CompressedImage':
+            return f'/captures/{self.capture}/compressed{self.topicId}'
+        if mode == 'UInt8MultiArray':
+            return f'/captures/{self.capture}/pickled{self.topicId}'
+        return f'/captures/{self.capture}/raw{self.topicId}'
 
     def cback_Compressed(self, msg):
         try:
@@ -60,7 +89,7 @@ class Viewer(Node):
             pubSpeed = pck.get('pubSpeed')
             if pubSpeed is None:
                 pubSpeed = 0
-            jpeg_bytes = pck.get('frame', b'')
+            jpeg_bytes = pck.get(self.key, b'')
             np_arr = np.frombuffer(jpeg_bytes, np.uint8)
             frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
