@@ -8,6 +8,7 @@ import time
 import pickle
 import numpy as np
 import yaml
+from array import array
 from cv_bridge import CvBridge
 from libStreamer.frameworks.gstreamer import ChainDecoder
 from rclpy.executors import MultiThreadedExecutor
@@ -51,11 +52,11 @@ class Rtsp:
         self.pMsg = UInt8MultiArray()
 
         ## libStreamer integration
-        ### Need to use Gst.ElementFactory.find(<enc>)
+        ### Need to use Gst.ElementFactory.find(<dec>)
         ### avdec_h264, nvh264dec, omxh264dec, vaapih264dec and v4l2h264dec
         self.cEncode = [int(cv2.IMWRITE_JPEG_QUALITY), self.jpegQuality]
 
-        self.chainDecoder = ChainDecoder(decoder = f'avdec_{self.node.get_parameter("codec").value}',
+        self.chainDecoder = ChainDecoder(decoder = f'avdec_{self.codec}',
                                          format = 'BGR',
                                          height = self.height,
                                          width = self.width)
@@ -109,7 +110,8 @@ class Rtsp:
         try:
             yml = yaml.safe_load(raw)
             if isinstance(yml, dict):
-                self.configChange(height = yml.get('height'),
+                self.configChange(codec = yml.get('codec'),
+                                  height = yml.get('height'),
                                   jpegQuality = yml.get('jpegQuality'),
                                   pubSpeed = yml.get('pubSpeed'),
                                   rtspUrl = yml.get('rtspUrl'),
@@ -123,6 +125,9 @@ class Rtsp:
     def paramHandler(self):
         if not self.node.has_parameter('codec'):
             self.node.declare_parameter('codec', 'h264')
+        self.codec = self.args.get('codec',
+                                   self.node.get_parameter_or('codec',
+                                                              'h264').value)
 
         if not self.node.has_parameter('height'):
             self.node.declare_parameter('height', 480)
@@ -289,9 +294,18 @@ class Rtsp:
                 self.node.get_logger().error(f'[~] Restart fail {E}')
 
 
-    def configChange(self, height = None, jpegQuality = None, pubSpeed = None, rtspUrl = None, width = None):
+    def configChange(self, codec = None, height = None, jpegQuality = None,
+                     pubSpeed = None, rtspUrl = None, width = None):
         """Reconfigure RTSP capture settings"""
         needsRestart = False
+
+        if codec is not None:
+            codec = str(codec).strip().lower()
+            if codec and codec != self.codec:
+                self.node.get_logger().info(f'[~] codec now {codec}')
+                self.codec = codec
+                self.node.set_parameters([rclpy.parameter.Parameter('codec', value = codec)])
+                needsRestart = True
 
         if height is not None:
             height = int(height)
@@ -351,7 +365,9 @@ class Rtsp:
 
         if needsRestart:
             self.node.get_logger().warn('[~] Restarting GStreamer pipeline due to config change...')
-            self.chainDecoder = self.chainDecoder.update(height = self.height, width = self.width, )
+            self.chainDecoder = self.chainDecoder.update(decoder = f'avdec_{self.codec}',
+                                                         height = self.height,
+                                                         width = self.width)
             self.pipelineRestart()
 
 
@@ -396,7 +412,7 @@ class Rtsp:
                        'lon': lon,
                        'tstamp': now,
                        'width': self.width}
-                self.pMsg.data = list(pickle.dumps(obj))
+                self.pMsg.data = array('B', pickle.dumps(obj, protocol = pickle.HIGHEST_PROTOCOL))
                 self.pub_Pickled.publish(self.pMsg)
             except Exception as E:
                 self.node.get_logger().warn(f'[!] {E}')

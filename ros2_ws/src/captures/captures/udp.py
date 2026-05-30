@@ -8,6 +8,7 @@ import time
 import pickle
 import numpy as np
 import yaml
+from array import array
 from cv_bridge import CvBridge
 from libStreamer.frameworks.gstreamer import ChainDecoder
 from rclpy.executors import MultiThreadedExecutor
@@ -17,7 +18,6 @@ from sensor_msgs.msg import CompressedImage, Image
 from std_msgs.msg import String, UInt8MultiArray
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
-
 
 class Udp:
     """Handler for capturing a UDP RTP stream (H.264/H.265)"""
@@ -456,7 +456,7 @@ class Udp:
                        'lon': lon,
                        'tstamp': now,
                        'width': self.width}
-                self.pMsg.data = list(pickle.dumps(obj))
+                self.pMsg.data = array('B', pickle.dumps(obj, protocol = pickle.HIGHEST_PROTOCOL))
                 self.pub_Pickled.publish(self.pMsg)
             except Exception as E:
                 self.node.get_logger().warn(f'[!] {E}')

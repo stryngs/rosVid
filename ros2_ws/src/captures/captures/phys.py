@@ -6,6 +6,7 @@ import rclpy
 import threading
 import time
 import yaml
+from array import array
 from cv_bridge import CvBridge
 from libStreamer import Config
 from libStreamer.lib.opencv import CaptureHandler
@@ -148,7 +149,7 @@ class Phys:
 
     def topicHandler(self):
         self.pub_Compressed = self.node.create_publisher(CompressedImage,
-                                                         f'captures/phys/compressed{self.topicId}',
+                                                         f'/captures/phys/compressed{self.topicId}',
                                                          self.qos)
         self.pub_Pickled = self.node.create_publisher(UInt8MultiArray,
                                                       f'/captures/phys/pickled{self.topicId}',
@@ -293,7 +294,7 @@ class Phys:
                        'pubSpeed': self.pubSpeed_hz,
                        'tstamp': now,
                        'width': self.width}
-                self.pMsg.data = list(pickle.dumps(obj))
+                self.pMsg.data = array('B', pickle.dumps(obj, protocol = pickle.HIGHEST_PROTOCOL))
                 self.pub_Pickled.publish(self.pMsg)
             except Exception as E:
                 self.node.get_logger().warn(f'[!] {E}')
