@@ -18,9 +18,13 @@ def main():
     parser.add_argument('--format', default = 'I420', help = 'Desired outbound pixel format [Default is I420]')
     parser.add_argument('--fps', default = '30', help = 'Desired frames per second [Default is 30]')
     parser.add_argument('--height', default = 480, help = 'Desired video height [Default is 480]')
+    parser.add_argument('--capture', choices = ['device', 'topic'], default = 'device', help = 'Capture source [Default is device]')
     parser.add_argument('--mipi', action = 'store_true', help = 'MIPI camera usage [Default is none]')
     parser.add_argument('--port', default = 8554, help = 'Desired port to stream on [Default is 8554]')
     parser.add_argument('--endpoint', default = 'video', help = 'Desired endpoint for the stream [Default is /video]')
+    parser.add_argument('--topic', default = '/captures/phys/pickled', help = 'ROS topic [Default is /captures/phys/pickled]')
+    parser.add_argument('--type', choices = ['UInt8MultiArray', 'CompressedImage', 'Image'], default = 'UInt8MultiArray', help = 'ROS topic message type [Default is UInt8MultiArray]')
+    parser.add_argument('--key', default = 'frame', help = 'UInt8MultiArray pickle image key [Default is frame]')
     parser.add_argument('--width', default = 640, help = 'Desired video width [Default is 640]')  
  
     args = parser.parse_args()
